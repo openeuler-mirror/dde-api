@@ -1,7 +1,4 @@
-# Run tests in check section
-# disable for bootstrapping
 %bcond_with check
-#%global _unpackaged_files_terminate_build 0 
 %global with_debug 1
 
 %if 0%{?with_debug}
@@ -11,7 +8,6 @@
 %global sname deepin-api
 %global release_name server-industry
 
-# out of memory on armv7hl
 %ifarch %{arm}
 %global _smp_mflags -j1
 %endif
@@ -35,7 +31,6 @@ BuildRequires:  go-lib-devel
 BuildRequires:  deepin-gettext-tools 
 BuildRequires:  deepin-gir-generator
 BuildRequires:  librsvg2-devel
-#BuildRequires:  libsqlite3x-devel
 BuildRequires:  sqlite-devel
 BuildRequires:  compiler(go-compiler)
 BuildRequires:  golang-github-linuxdeepin-go-x11-client-devel
@@ -149,5 +144,5 @@ exit 0
 %files -n %{name}-devel -f devel.file-list
 
 %changelog
-* Fri Jun 12 2020 uoser <uoser@uniontech.com> - 5.1.11.1
-- Update to 5.1.11.1
+* Thu Jul 30 2020 openEuler Buildteam <buildteam@openeuler.org> - 5.1.11.1-1
+- Package init
