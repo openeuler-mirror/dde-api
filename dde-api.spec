@@ -27,32 +27,17 @@ Source0:        %{name}_%{version}-%{release_name}.orig.tar.xz
 Patch1:         deepin-api_makefile.patch
 
 BuildRequires:  libcanberra-devel 
-BuildRequires:  go-lib-devel
 BuildRequires:  deepin-gettext-tools 
-BuildRequires:  deepin-gir-generator
 BuildRequires:  librsvg2-devel
 BuildRequires:  sqlite-devel
 BuildRequires:  compiler(go-compiler)
-BuildRequires:  golang-github-linuxdeepin-go-x11-client-devel
 BuildRequires:  gdk-pixbuf2-xlib-devel
 BuildRequires:  kf5-kwayland-devel
-BuildRequires:  golang-github-linuxdeepin-go-dbus-factory-devel
-BuildRequires:  golang-github-mattn-go-sqlite3-devel
-BuildRequires:  golang-gopkg-alecthomas-kingpin-devel
-BuildRequires:  golang-github-alecthomas-template-devel
-BuildRequires:  golang-github-alecthomas-units-devel
 BuildRequires:  poppler-glib
 BuildRequires:  poppler-glib-devel
-BuildRequires:  golang-github-cryptix-wav-devel
 BuildRequires:  alsa-lib-devel
 BuildRequires:  alsa-lib
 BuildRequires:  pulseaudio-libs-devel
-BuildRequires:  golang-github-disintegration-imaging-devel
-BuildRequires:  golang-github-fogleman-gg-devel
-BuildRequires:  golang-github-golang-freetype-devel
-BuildRequires:  golang.org-x-image-devel
-BuildRequires:  golang-golang-org-net-devel
-BuildRequires:  golang-github-rickb777-date-devel
 %{?systemd_requires}
 Requires:       deepin-desktop-base
 Requires:       rfkill
@@ -85,9 +70,9 @@ sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
     Makefile adjust-grub-theme/main.go
 
 %build
-export GOPATH=/usr/share/gocode:$GOPATH
 %gobuildroot
 for cmd in $(make binaries); do
+    GOPATH=/usr/share/gocode:%{_builddir}/%{name}-%{version}-%{release_name}/vendor:$GOPATH
     %gobuild -o _bin/$cmd %{goipath}/$cmd
 done
 %make_build
