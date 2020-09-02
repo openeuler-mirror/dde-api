@@ -30,7 +30,7 @@ BuildRequires:  libcanberra-devel
 BuildRequires:  deepin-gettext-tools 
 BuildRequires:  librsvg2-devel
 BuildRequires:  sqlite-devel
-BuildRequires:  golang
+BuildRequires:  compiler(go-compiler)
 BuildRequires:  gdk-pixbuf2-xlib-devel
 BuildRequires:  kf5-kwayland-devel
 BuildRequires:  poppler-glib
