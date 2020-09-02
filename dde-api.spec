@@ -30,7 +30,7 @@ BuildRequires:  libcanberra-devel
 BuildRequires:  deepin-gettext-tools 
 BuildRequires:  librsvg2-devel
 BuildRequires:  sqlite-devel
-BuildRequires:  compiler(go-compiler)
+BuildRequires:  golang
 BuildRequires:  gdk-pixbuf2-xlib-devel
 BuildRequires:  kf5-kwayland-devel
 BuildRequires:  poppler-glib
@@ -73,7 +73,7 @@ sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
 %gobuildroot
 for cmd in $(make binaries); do
     GOPATH=/usr/share/gocode:%{_builddir}/%{name}-%{version}-%{release_name}/vendor:$GOPATH
-    %gobuild -o _bin/$cmd %{goipath}/$cmd
+    go build -mod=vendor -o _bin/$cmd %{goipath}/$cmd
 done
 %make_build
 
