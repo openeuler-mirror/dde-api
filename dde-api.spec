@@ -19,7 +19,7 @@
 
 Name:           dde-api
 Version:        5.1.11.1
-Release:        4
+Release:        5
 Summary:        Go-lang bingding for dde-daemon
 License:        GPLv3+
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
@@ -46,17 +46,6 @@ Requires(pre):  shadow-utils
 %description
 %{summary}.
 
-%package -n %{name}-devel
-Summary:        %{summary}
-BuildArch:      noarch
-
-%description -n %{name}-devel
-%{summary}.
-
-This package contains library source intended for
-building other packages which use import path with
-%{goipath} prefix.
-
 %prep
 %forgeautosetup -p1 -n %{name}-%{version}-%{release_name}
 
@@ -72,7 +61,7 @@ sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
 %build
 %gobuildroot
 for cmd in $(make binaries); do
-    GOPATH=/usr/share/gocode:%{_builddir}/%{name}-%{version}-%{release_name}/vendor:$GOPATH
+    GOPATH=%{_builddir}/%{name}-%{version}-%{release_name}/vendor
     go build -mod=vendor -o _bin/$cmd %{goipath}/$cmd
 done
 %make_build
@@ -125,10 +114,11 @@ exit 0
 %{_datadir}/polkit-1/actions/com.deepin.api.device.unblock-bluetooth-devices.policy
 %{_var}/lib/polkit-1/localauthority/10-vendor.d/com.deepin.api.device.pkla
 %attr(-, deepin-sound-player, deepin-sound-player) %{_sharedstatedir}/deepin-sound-player
-
-%files -n %{name}-devel -f devel.file-list
+%exclude /usr/share/gocode/src
 
 %changelog
+* Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-5
+- remove dde-api-devel
 * Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-4
 - remove install golang devel
 * Tue Aug 18 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-3
