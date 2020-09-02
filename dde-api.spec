@@ -19,7 +19,7 @@
 
 Name:           dde-api
 Version:        5.1.11.1
-Release:        3
+Release:        4
 Summary:        Go-lang bingding for dde-daemon
 License:        GPLv3+
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
@@ -73,7 +73,7 @@ sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
 %gobuildroot
 for cmd in $(make binaries); do
     GOPATH=/usr/share/gocode:%{_builddir}/%{name}-%{version}-%{release_name}/vendor:$GOPATH
-    %gobuild -o _bin/$cmd %{goipath}/$cmd
+    go build -mod=vendor -o _bin/$cmd %{goipath}/$cmd
 done
 %make_build
 
@@ -129,6 +129,8 @@ exit 0
 %files -n %{name}-devel -f devel.file-list
 
 %changelog
+* Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-4
+- remove install golang devel
 * Tue Aug 18 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-3
 - remove golang devel
 * Thu Jul 30 2020 openEuler Buildteam <buildteam@openeuler.org> - 5.1.11.1-2

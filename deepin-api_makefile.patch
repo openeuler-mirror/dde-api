@@ -9,7 +9,7 @@
 +LIBDIR = /lib
 +SYSTEMD_LIB_DIR = ${LIBDIR}
  SYSTEMD_SERVICE_DIR = ${SYSTEMD_LIB_DIR}/systemd/system/
- GOBUILD = env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go build
+ GOBUILD = env GOPATH="${CURDIR}/${GOBUILD_DIR}:${GOPATH}" go build -mod=vendor
  
 @@ -38,7 +38,7 @@
      image-blur \
