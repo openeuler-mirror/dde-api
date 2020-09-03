@@ -19,11 +19,11 @@
 
 Name:           dde-api
 Version:        5.1.11.1
-Release:        5
+Release:        6
 Summary:        Go-lang bingding for dde-daemon
 License:        GPLv3+
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
-Source0:        %{name}_%{version}-%{release_name}.orig.tar.xz
+Source0:        https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/%{name}_%{version}-%{release_name}.orig.tar.xz
 Patch1:         deepin-api_makefile.patch
 
 BuildRequires:  libcanberra-devel 
@@ -117,6 +117,8 @@ exit 0
 %exclude /usr/share/gocode/src
 
 %changelog
+* Thu Sep 3 2020 weidong <weidong@uniontech.com> - 5.1.11.1-6
+- fix source url in spec
 * Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-5
 - remove dde-api-devel
 * Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-4
