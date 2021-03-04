@@ -18,9 +18,9 @@
 
 Name:           dde-api
 Version:        5.1.11.1
-Release:        7
+Release:        8
 Summary:        Go-lang bingding for dde-daemon
-License:        GPLv3+
+License:        GPLv2
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
 Source0:        https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/%{name}_%{version}-%{release_name}.orig.tar.xz
 Patch1:         deepin-api_makefile.patch
@@ -118,6 +118,9 @@ exit 0
 %exclude %{gopath}/src
 
 %changelog
+* Thu Mar 4 2021 weidong <weidong@uniontech.com> - 5.1.11.1-8
+- Update license.
+
 * Thu Feb 18 2021 panchenbo <panchenbo@uniontech.com> - 5.1.11.1-7
 - fix build error
 * Thu Sep 3 2020 weidong <weidong@uniontech.com> - 5.1.11.1-6
