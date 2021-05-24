@@ -15,13 +15,12 @@
 %global goipath  pkg.deepin.io/dde/api
 %global forgeurl https://github.com/linuxdeepin/dde-api
 %global tag      %{version}
-%gometa
 
 Name:           dde-api
 Version:        5.1.11.1
-Release:        6
+Release:        8
 Summary:        Go-lang bingding for dde-daemon
-License:        GPLv3+
+License:        GPLv2
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
 Source0:        https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/%{name}_%{version}-%{release_name}.orig.tar.xz
 Patch1:         deepin-api_makefile.patch
@@ -30,7 +29,7 @@ BuildRequires:  libcanberra-devel
 BuildRequires:  deepin-gettext-tools 
 BuildRequires:  librsvg2-devel
 BuildRequires:  sqlite-devel
-BuildRequires:  compiler(go-compiler)
+BuildRequires:  golang
 BuildRequires:  gdk-pixbuf2-xlib-devel
 BuildRequires:  kf5-kwayland-devel
 BuildRequires:  poppler-glib
@@ -59,7 +58,6 @@ sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
     Makefile adjust-grub-theme/main.go
 
 %build
-%gobuildroot
 for cmd in $(make binaries); do
     GOPATH=%{_builddir}/%{name}-%{version}-%{release_name}/vendor
     go build -mod=vendor -o _bin/$cmd %{goipath}/$cmd
@@ -69,7 +67,10 @@ done
 %install
 rm -rf $(make binaries)
 gofiles=$(find $(make libraries) %{?gofindfilter} -print)
-%goinstall $gofiles
+for file in $gofiles ; do
+    install -d -p %{buildroot}/%{gopath}/src/%{goipath}/$(dirname $file)
+    cp -pav $file %{buildroot}/%{gopath}/src/%{goipath}/$file
+done
 %make_install SYSTEMD_SERVICE_DIR="%{_unitdir}" LIBDIR="%{_libexecdir}"
 # HOME directory for user deepin-sound-player
 mkdir -p %{buildroot}%{_sharedstatedir}/deepin-sound-player
@@ -114,9 +115,14 @@ exit 0
 %{_datadir}/polkit-1/actions/com.deepin.api.device.unblock-bluetooth-devices.policy
 %{_var}/lib/polkit-1/localauthority/10-vendor.d/com.deepin.api.device.pkla
 %attr(-, deepin-sound-player, deepin-sound-player) %{_sharedstatedir}/deepin-sound-player
-%exclude /usr/share/gocode/src
+%exclude %{gopath}/src
 
 %changelog
+* Thu Mar 4 2021 weidong <weidong@uniontech.com> - 5.1.11.1-8
+- Update license.
+
+* Thu Feb 18 2021 panchenbo <panchenbo@uniontech.com> - 5.1.11.1-7
+- fix build error
 * Thu Sep 3 2020 weidong <weidong@uniontech.com> - 5.1.11.1-6
 - fix source url in spec
 * Wed Sep 2 2020 chenbo pan <panchenbo@uniontech.com> - 5.1.11.1-5
