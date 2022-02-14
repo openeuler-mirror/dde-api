@@ -3,7 +3,7 @@
 
 Name:           dde-api
 Version:        5.2.0
-Release:        1
+Release:        2
 Summary:        dde-api
 License:        GPLv3
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
@@ -37,6 +37,7 @@ dde-api
 
 %prep
 %autosetup
+go env -w GO111MODULE=auto
 
 %build
 make -C ./gir generator
@@ -111,6 +112,9 @@ rm -rf %{buildroot}/%{gopath}
 %files -f devel.file-list
 
 %changelog
+* Sat Jan 29 2022 liweiganga <liweiganga@uniontech.com> - 5.2.0-2
+- fix build error.
+
 * Thu Aug 26 2021 weidong <weidong@uniontech.com> - 5.2.0-1
 - Update dde-api.
 
