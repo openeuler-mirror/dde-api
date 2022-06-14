@@ -3,11 +3,12 @@
 
 Name:           dde-api
 Version:        5.2.0
-Release:        2
+Release:        3
 Summary:        dde-api
 License:        GPLv3
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
 Source0:        %{name}-%{version}.tar.gz
+Patch0:         0001-fix-riscv64-support.patch
 BuildRequires:  golang
 BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(cairo-ft)
@@ -36,7 +37,8 @@ BuildRequires:  deepin-gettext-tools
 dde-api
 
 %prep
-%autosetup
+%setup
+%patch0 -p1
 go env -w GO111MODULE=auto
 
 %build
@@ -112,6 +114,9 @@ rm -rf %{buildroot}/%{gopath}
 %files -f devel.file-list
 
 %changelog
+* Fri Jun 10 2022 misaka00251 <misaka00251@misakanet.cn> - 5.2.0-3
+- Add patch to fix RISC-V support.
+
 * Sat Jan 29 2022 liweiganga <liweiganga@uniontech.com> - 5.2.0-2
 - fix build error.
 
