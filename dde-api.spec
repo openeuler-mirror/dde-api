@@ -1,121 +1,138 @@
+# Run tests in check section
+# disable for bootstrapping
 %bcond_with check
-%global goipath  pkg.deepin.io/lib
+#%global _unpackaged_files_terminate_build 0
+%global with_debug 1
+
+%if 0%{?with_debug}
+%global debug_package   %{nil}
+%endif
+
+%global sname deepin-api
+
+# out of memory on armv7hl
+%ifarch %{arm}
+%global _smp_mflags -j1
+%endif
+
+%global goipath  pkg.deepin.io/dde/api
+%global forgeurl https://github.com/linuxdeepin/dde-api
+%global tag      %{version}
 
 Name:           dde-api
-Version:        5.2.0
-Release:        3
-Summary:        dde-api
-License:        GPLv3
+Version:        5.4.6
+Release:        2
+Summary:        Go-lang bingding for dde-daemon
+License:        GPLv3+
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
-Source0:        %{name}-%{version}.tar.gz
-Patch0:         0001-fix-riscv64-support.patch
-BuildRequires:  golang
-BuildRequires:  pkgconfig(alsa)
-BuildRequires:  pkgconfig(cairo-ft)
-BuildRequires:  pkgconfig(gio-2.0)
-BuildRequires:  pkgconfig(gtk+-3.0)
-BuildRequires:  pkgconfig(gdk-pixbuf-xlib-2.0)
-BuildRequires:  pkgconfig(gudev-1.0)
-BuildRequires:  pkgconfig(libcanberra)
-BuildRequires:  pkgconfig(libpulse-simple)
-BuildRequires:  pkgconfig(librsvg-2.0)
-BuildRequires:  pkgconfig(poppler-glib)
-BuildRequires:  pkgconfig(polkit-qt5-1)
-BuildRequires:  pkgconfig(systemd)
-BuildRequires:  pkgconfig(xfixes)
-BuildRequires:  pkgconfig(xcursor)
-BuildRequires:  pkgconfig(x11)
-BuildRequires:  pkgconfig(xi)
-BuildRequires:  pkgconfig(gobject-introspection-1.0)
-BuildRequires:  pkgconfig(gudev-1.0)
-BuildRequires:  pkgconfig(sqlite3)
-BuildRequires:  deepin-gettext-tools
+Source0:        %{name}-%{version}.orig.tar.xz
+Source1:        vendor.tar.gz
 
-%define debug_package %{nil}
+BuildRequires:  libcanberra-devel
+BuildRequires:  deepin-gettext-tools
+BuildRequires:  librsvg2-devel
+BuildRequires:  sqlite-devel
+#BuildRequires:  go-compiler
+BuildRequires:  golang golang-devel
+BuildRequires:  gdk-pixbuf-xlib
+BuildRequires:  kf5-kwayland-devel
+BuildRequires:  poppler-glib
+BuildRequires:  poppler-glib-devel
+BuildRequires:  alsa-lib-devel
+BuildRequires:  alsa-lib
+BuildRequires:  pulseaudio-libs-devel
+BuildRequires:  libgudev-devel
+%{?systemd_requires}
+Requires:       deepin-desktop-base
+Requires:       rfkill
+Requires(pre):  shadow-utils
 
 %description
-dde-api
+%{summary}.
+
+%package -n %{name}-devel
+Summary:        %{summary}
+BuildArch:      noarch
+
+%description -n %{name}-devel
+%{summary}.
+
+This package contains library source intended for
+building other packages which use import path with
+%{goipath} prefix.
 
 %prep
-%setup
-%patch0 -p1
-go env -w GO111MODULE=auto
+%forgeautosetup -p1 -n %{name}-%{version}
+
+sed -i 's|/usr/lib|%{_libexecdir}|' misc/*services/*.service \
+    misc/systemd/system/deepin-shutdown-sound.service \
+    lunar-calendar/main.go \
+    theme_thumb/gtk/gtk.go \
+    thumbnails/gtk/gtk.go
+
+sed -i 's|PREFIX}${libdir|LIBDIR|; s|libdir|LIBDIR|' \
+    Makefile adjust-grub-theme/main.go
+tar -xf %{SOURCE1}
 
 %build
-make -C ./gir generator
-make -C ./gir
-cp -r ./gir/out/src/pkg.deepin.io/gir/ ./pkg.deepin.io
+go env -w GO111MODULE=auto
+export GOPATH=%{_builddir}/%{name}-%{version}/vendor:$GOPATH
+%make_build
 
 %install
-install -d -p %{buildroot}/%{gopath}/src/
-for file in $(find . -iname "*.go" -o -iname "*.c" -o -iname "*.h" -o -iname "*.s") ; do
-    install -d -p %{buildroot}/%{gopath}/src/$(dirname $file)
-    cp -pav $file %{buildroot}/%{gopath}/src/$file
-    #echo "%{gopath}/src/$file" >> devel.file-list
+for file in $(find . -iname "*.go" -o -iname "*.c" -o -iname "*.h" -o -iname "*.s"); do
+    install -d -p %{buildroot}/%{gopath}/src/%{goipath}/$(dirname $file)
+    cp -pav $file %{buildroot}/%{gopath}/src/%{goipath}/$file
+    echo "%{gopath}/src/%{goipath}/$file" >> devel.file-list
 done
+%make_install SYSTEMD_SERVICE_DIR="%{_unitdir}" LIBDIR="%{_libexecdir}"
+# HOME directory for user deepin-sound-player
+mkdir -p %{buildroot}%{_sharedstatedir}/deepin-sound-player
 
-make -C ./pkg.deepin.io/dde/api/ GOPATH=%{buildroot}/%{gopath}
+%pre
+getent group deepin-sound-player >/dev/null || groupadd -r deepin-sound-player
+getent passwd deepin-sound-player >/dev/null || \
+    useradd -r -g deepin-sound-player -d %{_sharedstatedir}/deepin-sound-player\
+    -s /sbin/nologin \
+    -c "User of com.deepin.api.SoundThemePlayer.service" deepin-sound-player
+exit 0
 
-install -d -p %{buildroot}/usr/lib/deepin-api
-for file in $(ls ./pkg.deepin.io/dde/api/out/bin) ; do
-    cp -pav ./pkg.deepin.io/dde/api/out/bin/$file %{buildroot}/usr/lib/deepin-api/$file
-    echo "/usr/lib/deepin-api/$file" >> devel.file-list
-done
+%post
+%systemd_post deepin-shutdown-sound.service
 
-install -d -p %{buildroot}/usr/share/dbus-1/system.d/
-for file in $(find ./pkg.deepin.io/dde/api/misc -iname "*.conf") ; do
-    cp -pav $file %{buildroot}/usr/share/dbus-1/system.d/$(basename $file)
-    echo "/usr/share/dbus-1/system.d/$(basename $file)" >> devel.file-list
-done
+%preun
+%systemd_preun deepin-shutdown-sound.service
 
-install -d -p %{buildroot}/usr/share/dbus-1/services/
-for file in $(find ./pkg.deepin.io/dde/api/misc/services -iname "*.service") ; do
-    cp -pav $file %{buildroot}/usr/share/dbus-1/services/$(basename $file)
-    echo "/usr/share/dbus-1/services/$(basename $file)" >> devel.file-list
-done
+%postun
+%systemd_postun_with_restart deepin-shutdown-sound.service
 
-install -d -p %{buildroot}/usr/share/dbus-1/system-services/
-for file in $(find ./pkg.deepin.io/dde/api/misc/system-services -iname "*.service") ; do
-    cp -pav $file %{buildroot}/usr/share/dbus-1/system-services/$(basename $file)
-    echo "/usr/share/dbus-1/system-services/$(basename $file)" >> devel.file-list
-done
+%files
+%doc README.md
+%license LICENSE
+%{_bindir}/dde-open
+%{_libexecdir}/%{sname}/
+%{_unitdir}/*.service
+%{_datadir}/dbus-1/services/*.service
+%{_datadir}/dbus-1/system-services/*.service
+%{_datadir}/dbus-1/system.d/*.conf
+%{_datadir}/icons/hicolor/*/actions/*
+%{_datadir}/dde-api/data/huangli.db
+%{_datadir}/dde-api/data/huangli.version
+%{_datadir}/dde-api/data/pkg_depends
+%{_datadir}/dde-api/data/grub-themes/
+%{_datadir}/polkit-1/actions/com.deepin.api.locale-helper.policy
+%{_datadir}/polkit-1/actions/com.deepin.api.device.unblock-bluetooth-devices.policy
+%{_var}/lib/polkit-1/localauthority/10-vendor.d/com.deepin.api.device.pkla
+%attr(-, deepin-sound-player, deepin-sound-player) %{_sharedstatedir}/deepin-sound-player
 
-install -d -p %{buildroot}/usr/share/polkit-1/actions
-for file in $(find ./pkg.deepin.io/dde/api/misc/polkit-action -iname "*.policy") ; do
-    cp -pav $file %{buildroot}/usr/share/polkit-1/actions/$(basename $file)
-    echo "/usr/share/polkit-1/actions/$(basename $file)" >> devel.file-list
-done
-
-install -d -p %{buildroot}/var/lib/polkit-1/localauthority/10-vendor.d
-for file in $(find ./pkg.deepin.io/dde/api/misc/polkit-localauthority -iname "*.pkla") ; do
-    cp -pav $file %{buildroot}/var/lib/polkit-1/localauthority/10-vendor.d/$(basename $file)
-    echo "/var/lib/polkit-1/localauthority/10-vendor.d/$(basename $file)" >> devel.file-list
-done
-
-install -d -p %{buildroot}/usr/share/dde-api
-for file in $(find ./pkg.deepin.io/dde/api/misc/data) ; do
-    cp -pav $file %{buildroot}/usr/share/dde-api/$(basename $file)
-    echo "/usr/share/dde-api/$(basename $file)" >> devel.file-list
-done
-
-install -d -p %{buildroot}/lib/systemd/system/
-for file in $(find ./pkg.deepin.io/dde/api/misc/systemd/system/ -iname "*.service") ; do
-    cp -pav $file %{buildroot}/lib/systemd/system/$(basename $file)
-    echo "/lib/systemd/system/$(basename $file)" >> devel.file-list
-done
-
-install -d -p %{buildroot}/usr/share/icons/hicolor
-for file in $(find ./pkg.deepin.io/dde/api/misc/icons/) ; do
-    cp -pav $file %{buildroot}/usr/share/icons/hicolor/$(basename $file)
-    echo "/usr/share/icons/hicolor/$(basename $file)" >> devel.file-list
-done
-rm -rf %{buildroot}/%{gopath}
-
-%files -f devel.file-list
+%files -n %{name}-devel -f devel.file-list
 
 %changelog
-* Fri Jun 10 2022 misaka00251 <misaka00251@misakanet.cn> - 5.2.0-3
-- Add patch to fix RISC-V support.
+* Fri Aug 19 2022 misaka00251 <misaka00251@misakanet.cn> - 5.4.6-2
+- Rebase upstream & Update vendor.tar.gz to build on RISC-V
+
+* Mon Jul 18 2022 konglidong <konglidong@uniontech.com> - 5.4.6-1
+- Update to 5.4.6
 
 * Sat Jan 29 2022 liweiganga <liweiganga@uniontech.com> - 5.2.0-2
 - fix build error.
