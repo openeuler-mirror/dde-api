@@ -2,7 +2,7 @@
 # disable for bootstrapping
 %bcond_with check
 #%global _unpackaged_files_terminate_build 0
-%global with_debug 1
+%global with_debug 0
 
 %if 0%{?with_debug}
 %global debug_package   %{nil}
@@ -21,7 +21,7 @@
 
 Name:           dde-api
 Version:        5.4.6
-Release:        2
+Release:        3
 Summary:        Go-lang bingding for dde-daemon
 License:        GPLv3+
 URL:            https://shuttle.corp.deepin.com/cache/tasks/19177/unstable-amd64/
@@ -128,8 +128,11 @@ exit 0
 %files -n %{name}-devel -f devel.file-list
 
 %changelog
-* Fri Aug 19 2022 misaka00251 <misaka00251@misakanet.cn> - 5.4.6-2
+* Fri Feb 24 2023 misaka00251 <liuxin@iscas.ac.cn> - 5.4.6-3
 - Rebase upstream & Update vendor.tar.gz to build on RISC-V
+
+* Wed Dec 21 2022 liweiganga <liweiganga@uniontech.com> - 5.4.6-2
+- enable debuginfo for fix strip
 
 * Mon Jul 18 2022 konglidong <konglidong@uniontech.com> - 5.4.6-1
 - Update to 5.4.6
